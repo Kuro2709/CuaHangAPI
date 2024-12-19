@@ -8,9 +8,14 @@ namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class HoaDonController(ApplicationDbContext context) : ControllerBase
+    public class HoaDonController : ControllerBase
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly ApplicationDbContext _context;
+
+        public HoaDonController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         // GET: api/HoaDon
         [HttpGet]
@@ -54,14 +59,14 @@ namespace CuaHangAPI.Controllers
         }
 
         // GET: api/HoaDon/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<HoaDonDto>> GetInvoiceById(string id)
+        [HttpGet("{invoiceID}")]
+        public async Task<ActionResult<HoaDonDto>> GetInvoiceById(string invoiceID)
         {
             var invoice = await _context.Invoices
                 .Include(i => i.Customer)
                 .Include(i => i.InvoiceDetails)
                 .ThenInclude(d => d.Product)
-                .FirstOrDefaultAsync(i => i.InvoiceID == id);
+                .FirstOrDefaultAsync(i => i.InvoiceID == invoiceID);
 
             if (invoice == null)
             {
@@ -105,7 +110,7 @@ namespace CuaHangAPI.Controllers
         {
             if (invoiceDto.InvoiceID == null)
             {
-                return BadRequest("InvoiceID cannot be null.");
+                return BadRequest("Mã hóa đơn không thể để trống.");
             }
 
             // Trim spaces and convert InvoiceID to uppercase
@@ -132,7 +137,7 @@ namespace CuaHangAPI.Controllers
                 InvoiceDate = invoiceDto.InvoiceDate,
                 TotalPrice = 0, // Initialize TotalPrice to 0
                 Customer = customer, // Set the required Customer property
-                InvoiceDetails = { }
+                InvoiceDetails = new List<ThongTinChiTietHoaDon>()
             };
 
             // Populate InvoiceDetails from DTO and calculate TotalPrice
@@ -286,6 +291,26 @@ namespace CuaHangAPI.Controllers
             }
 
             return Ok(product.Price);
+        }
+
+        // GET: api/HoaDon/Products/{productID}
+        [HttpGet("Products/{productID}")]
+        public async Task<ActionResult<SanPhamDto>> GetProductById(string productID)
+        {
+            var product = await _context.Products.FindAsync(productID);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            var productDto = new SanPhamDto
+            {
+                ProductID = product.ProductID,
+                ProductName = product.ProductName,
+                Price = product.Price
+            };
+
+            return Ok(productDto);
         }
 
         private decimal GetProductPrice(string productID)

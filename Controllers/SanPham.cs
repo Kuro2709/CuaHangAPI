@@ -10,7 +10,8 @@ namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Apply authorization to the entire controller
+    [AllowAnonymous]
+    ///[Authorize] // Apply authorization to the entire controller
     public class SanPhamController(ApplicationDbContext context) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;

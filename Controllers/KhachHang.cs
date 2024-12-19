@@ -5,19 +5,24 @@ using CuaHangAPI.Dtos;
 using CuaHangAPI.Models;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Authorization;
+using CuaHangAPI.Helpers;
 
 
 namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Apply the Authorize attribute to the entire controller
     public partial class KhachHangController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly JwtService _jwtService;
 
-        public KhachHangController(ApplicationDbContext context)
+        public KhachHangController(ApplicationDbContext context, JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         // GET: api/KhachHang
@@ -33,6 +38,26 @@ namespace CuaHangAPI.Controllers
             }).ToList();
 
             return Ok(customerDtos);
+        }
+
+        // GET: api/KhachHang/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<KhachHangDto>> GetCustomerById(string id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            var customerDto = new KhachHangDto
+            {
+                CustomerID = customer.CustomerID,
+                CustomerName = customer.CustomerName,
+                Phone = customer.Phone
+            };
+
+            return Ok(customerDto);
         }
 
         [GeneratedRegex(@"^\d+$")]
@@ -81,12 +106,12 @@ namespace CuaHangAPI.Controllers
 
         // PUT: api/KhachHang/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditCustomer(string id, ChinhSuaKhachHang customerDto)
+        public async Task<IActionResult> EditCustomer(string id, [FromBody] ChinhSuaKhachHang customerDto)
         {
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null)
             {
-                return NotFound();
+                return NotFound("Không tìm thấy khách hàng.");
             }
 
             if (string.IsNullOrEmpty(customerDto.CustomerName) || string.IsNullOrEmpty(customerDto.Phone))
@@ -99,21 +124,21 @@ namespace CuaHangAPI.Controllers
 
             try
             {
+                _context.Entry(customer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+                return Ok(customer); // Return the updated product
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!_context.Customers.Any(e => e.CustomerID == id))
                 {
-                    return NotFound();
+                    return NotFound("Không tìm thấy khách hàng.");
                 }
                 else
                 {
                     throw;
                 }
             }
-
-            return NoContent();
         }
 
         // DELETE: api/KhachHang/{id}

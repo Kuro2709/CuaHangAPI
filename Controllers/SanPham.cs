@@ -10,8 +10,8 @@ namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
-    ///[Authorize] // Apply authorization to the entire controller
+    
+    [Authorize] // Apply authorization to the entire controller
     public class SanPhamController(ApplicationDbContext context) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;
@@ -34,7 +34,7 @@ namespace CuaHangAPI.Controllers
 
         // GET: api/SanPham/{id}
         [HttpGet("{id}")]
-        [AllowAnonymous] // Allow anonymous access to this endpoint
+       
         public async Task<ActionResult<SanPhamDto>> GetProduct(string id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -55,7 +55,7 @@ namespace CuaHangAPI.Controllers
 
         // PUT: api/SanPham/{id}
         [HttpPut("{id}")]
-        [AllowAnonymous]
+        
         public async Task<IActionResult> EditProduct(string id, [FromBody] ChinhSuaSanPhamDto productInfo)
         {
             var product = await _context.Products.FindAsync(id);
@@ -93,7 +93,7 @@ namespace CuaHangAPI.Controllers
 
         // POST: api/SanPham
         [HttpPost]
-        [AllowAnonymous] // Allow anonymous access to this endpoint
+        
         public async Task<IActionResult> AddProduct([FromBody] AddProductDto productInfo)
         {
             if (productInfo == null)
@@ -142,7 +142,7 @@ namespace CuaHangAPI.Controllers
 
         // DELETE: api/SanPham/{id}
         [HttpDelete("{id}")]
-        [AllowAnonymous]
+        
         public async Task<IActionResult> DeleteProduct(string id)
         {
             var product = await _context.Products.FindAsync(id);

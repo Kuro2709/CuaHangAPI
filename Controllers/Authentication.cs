@@ -4,42 +4,46 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using CuaHangAPI.Dtos;
+using CuaHangAPI.Models;
+using CuaHangAPI.Data;
 
 namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IConfiguration configuration) : ControllerBase
+    public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration = configuration;
+        private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
+
+        public AuthController(IConfiguration configuration, ApplicationDbContext context)
+        {
+            _configuration = configuration;
+            _context = context;
+        }
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDto loginDto)
         {
-            // Validate the user credentials (this is just an example, use a proper user validation mechanism)
-            if (loginDto.Username == "admin" && loginDto.Password == "password")
+            var user = _context.Users.SingleOrDefault(u => u.Username == loginDto.Username && u.Password == loginDto.Password);
+            if (user == null)
             {
-                var token = GenerateJwtToken(loginDto.Username, "Admin");
-                return Ok(new { token });
-            }
-            else if (loginDto.Username == "user" && loginDto.Password == "password")
-            {
-                var token = GenerateJwtToken(loginDto.Username, "User");
-                return Ok(new { token });
+                return Unauthorized("Invalid credentials");
             }
 
-            return Unauthorized("Invalid credentials");
+            var token = GenerateJwtToken(user);
+            return Ok(new { token });
         }
 
-        private string GenerateJwtToken(string username, string role)
+        private string GenerateJwtToken(User user)
         {
             var jwtKey = _configuration["Jwt:Key"];
             var jwtIssuer = _configuration["Jwt:Issuer"];
             var jwtAudience = _configuration["Jwt:Audience"];
 
-            if (string.IsNullOrEmpty(jwtKey))
+            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
             {
-                throw new ArgumentNullException(nameof(username), "JWT Key is not configured.");
+                throw new InvalidOperationException("JWT configuration is missing.");
             }
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
@@ -47,9 +51,9 @@ namespace CuaHangAPI.Controllers
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, username),
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var token = new JwtSecurityToken(

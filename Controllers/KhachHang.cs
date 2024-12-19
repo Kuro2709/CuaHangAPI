@@ -13,7 +13,7 @@ namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Apply the Authorize attribute to the entire controller
+    [Authorize]
     public partial class KhachHangController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

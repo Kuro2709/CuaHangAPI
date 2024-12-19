@@ -3,13 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CuaHangAPI.Data
 {
-    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+    public class ApplicationDbContext : DbContext
     {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+        }
+
         // Define DbSet properties for the entities
         public required DbSet<ThongTinSanPham> Products { get; set; }
         public required DbSet<ThongTinKhachHang> Customers { get; set; }
         public required DbSet<ThongTinHoaDon> Invoices { get; set; }
         public required DbSet<ThongTinChiTietHoaDon> InvoiceDetails { get; set; }
+        public required DbSet<User> Users { get; set; } // Add this line
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,6 +23,7 @@ namespace CuaHangAPI.Data
             modelBuilder.Entity<ThongTinKhachHang>().ToTable("Customer");
             modelBuilder.Entity<ThongTinHoaDon>().ToTable("Invoice");
             modelBuilder.Entity<ThongTinChiTietHoaDon>().ToTable("InvoiceDetails");
+            modelBuilder.Entity<User>().ToTable("Users"); // Add this line
 
             // Configure relationships
 

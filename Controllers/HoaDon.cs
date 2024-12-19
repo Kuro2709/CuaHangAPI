@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using CuaHangAPI.Data;
 using CuaHangAPI.Dtos;
 using CuaHangAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CuaHangAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class HoaDonController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

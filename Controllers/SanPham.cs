@@ -11,14 +11,13 @@ namespace CuaHangAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     
-    [Authorize] // Apply authorization to the entire controller
+    [Authorize]
     public class SanPhamController(ApplicationDbContext context) : ControllerBase
     {
         private readonly ApplicationDbContext _context = context;
 
         // GET: api/SanPham
         [HttpGet]
-        [AllowAnonymous] // Allow anonymous access to this endpoint
         public async Task<ActionResult<IEnumerable<SanPhamDto>>> GetProducts()
         {
             var products = await _context.Products.ToListAsync();

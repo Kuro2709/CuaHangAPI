@@ -26,6 +26,7 @@ namespace CuaHangAPI.Controllers
         }
 
         // GET: api/KhachHang
+       
         [HttpGet]
         public async Task<ActionResult<IEnumerable<KhachHangDto>>> GetCustomers()
         {
